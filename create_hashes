@@ -1,22 +1,24 @@
 #!/usr/bin/env python
 '''
-call the script:
-    python create_hashes.py 100
-to generate 100 individual hashes per line
- 
-Recommended usage would be:
-    python create_hashes.py 100 > hashes.txt
-for UUCSS
+A script to generate a random 5 character hash (ex. e7f5e) to guarantee
+uniqueness for something like UUCSS. Place the script in /usr/local/bin
+for easy access.
+
+Tested in Python 2.7 and 3.2
+
+For the emacs inclined, insert a hash at point with:
+(defun np-insert-hash-at-point ()
+  (interactive)
+   (insert (shell-command-to-string "create_hashes 1")))
 '''
 import argparse
 import uuid
 import sys
 
-parser = argparse.ArgumentParser(description="`python create_hashes.py 100` \
-would generate 100 individual hashes per line \
-`python create_hashes 1` will return a unique hash without a trailing newline \
-for inserting in place")
-parser.add_argument('number', type=int,
+PARSER = argparse.ArgumentParser(description="`python create_hashes.py 100` \
+would generate 100 individual hashes per line `python create_hashes 1` will \
+return a unique hash without a trailing newline for inserting in place")
+PARSER.add_argument('number', type=int,
                     help="Integer number of hashes to generate.")
 
 def unique_id():
@@ -24,12 +26,12 @@ def unique_id():
 
 def loop_hashes(num_times):
     for _ in range(num_times):
-        print unique_id()
+        print(unique_id())
 
 
 if __name__ == '__main__':
-    args = parser.parse_args()
-    if args.number == 1:
+    ARGS = PARSER.parse_args()
+    if ARGS.number == 1:
         sys.stdout.write(unique_id())
     else:
-        loop_hashes(args.number)
+        loop_hashes(ARGS.number)
