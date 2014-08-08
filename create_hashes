@@ -22,7 +22,11 @@ PARSER.add_argument('number', type=int,
                     help="Integer number of hashes to generate.")
 
 def unique_id():
-    return uuid.uuid4().hex[:5]
+    maybe = uuid.uuid4().hex[:5]
+    if not maybe.isalpha() and not maybe.isdigit():
+        return maybe
+    else:
+        return unique_id()
 
 def loop_hashes(num_times):
     for _ in range(num_times):
