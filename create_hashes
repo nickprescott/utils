@@ -1,15 +1,9 @@
 #!/usr/bin/env python
 '''
 A script to generate a random 5 character hash (ex. e7f5e) to guarantee
-uniqueness for something like UUCSS. Place the script in /usr/local/bin
-for easy access.
+uniqueness for something like UUCSS/GUS.
 
 Tested in Python 2.7 and 3.2
-
-For the emacs inclined, insert a hash at point with:
-(defun np-insert-hash-at-point ()
-  (interactive)
-   (insert (shell-command-to-string "create_hashes 1")))
 '''
 import argparse
 import uuid
