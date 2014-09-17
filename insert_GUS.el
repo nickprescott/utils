@@ -32,8 +32,9 @@
   (string-match-p "[A-Fa-f]" var-string))
 
 (defun np-insert-GUS ()
+  "Insert a 5 character alphanumeric hash (ex. 62b57) at point"
   (interactive)
   (let ((subStr (substring (np-insert-uuid-internal) 31 36)))
     (if (and (np-contains-number subStr) (np-contains-letter subStr))
 	(insert subStr)
-      (np-insert-five-char-hash))))
+      (np-insert-GUS))))
