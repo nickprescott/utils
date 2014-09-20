@@ -1,7 +1,7 @@
 ; heavy inspiration taken from:
 ; http://ergoemacs.org/emacs/elisp_generate_uuid.html
 
-(defun insert-gus-selector ()
+(defun insert-gus-hash ()
   (interactive)
   "Insert a random 5 character hash (ex. 309ec) at point, for use with Globally
 Unique Selector (GUS) syntax. Taken from an md5 hash of variable system data."
@@ -17,4 +17,4 @@ Unique Selector (GUS) syntax. Taken from an md5 hash of variable system data."
     (if (and (string-match-p "[0-9]" myStr)
 	     (string-match-p "[a-f]" myStr))
 	(insert myStr)
-      (insert-gus-selector))))
+      (insert-gus-hash))))
