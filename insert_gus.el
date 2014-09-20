@@ -2,6 +2,7 @@
 ; http://ergoemacs.org/emacs/elisp_generate_uuid.html
 
 (defun insert-gus-selector ()
+  (interactive)
   "Insert a random 5 character hash (ex. 309ec) at point, for use with Globally
 Unique Selector (GUS) syntax. Taken from an md5 hash of variable system data."
   (let ((myStr (substring
