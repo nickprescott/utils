@@ -1,5 +1,5 @@
-; heavy inspiration taken from:
-; http://ergoemacs.org/emacs/elisp_generate_uuid.html
+;; heavy inspiration taken from:
+;; http://ergoemacs.org/emacs/elisp_generate_uuid.html
 
 (defun insert-gus-hash ()
   "Insert a random 5 character alphanumeric hash (ex. 309ec) at point, for use 
