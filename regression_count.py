@@ -14,88 +14,68 @@ import requests
 import sys
 
 
+table_rows_in = lambda url: _get_parsed_page(url).find('table').findAll('tr')
+
 def _get_parsed_page(link):
     '''
     provide regression report link, returns the BS object
     '''
     page = requests.get(link).text
-    soup = BeautifulSoup(page)
-    return soup
+    return BeautifulSoup(page)
 
 
 def get_top_level_links(parent_link):
     '''
-    returns a list of tuples containing link and contents
+    returns a generator of tuples containing link and contents
     from the 'top level' of SEG/MVM links
     '''
     soup = _get_parsed_page(parent_link)
-    href = []
-    for link in soup.findAll('a'):
-        href.append((link.attrs, link.contents))
-    return href
+    return ((link.attrs, link.contents) for link in soup.findAll('a'))
 
 
 def parse_index(html_page):
     '''
-    returns a list of links from the analysis page
+    returns a generator of links from the analysis page
     '''
-    soup = _get_parsed_page(html_page)
-    table = soup.find('table')
-    rows = table.findAll('tr')
-    links = []
-    for table_row in rows:
-        cols = table_row.findAll('td')
-        if len(cols) == 5 and "analysis" in cols[2].text:
-            link = cols[2].find('a')['href']
-            links.append(link)
-    return links
+    table_cells_in = lambda x: x.findAll('td')
+    get_href_from = lambda x: x.find('a')['href']
+    
+    return (get_href_from(table_cells_in(tr)[2]) \
+            for tr in table_rows_in(html_page) \
+            if len(table_cells_in(tr)) == 5 \
+            and "analysis" \
+            in table_cells_in(tr)[2].text)
 
 
 def parse_summary(link):
     '''
     returns a tuple of the tests passed/failed/total
-    scrapes from the summary pane
+    scraped from the summary pane
     '''
-    soup = _get_parsed_page(link)
-    table = soup.find('table')
-    row = table.find('tr')
-    summary = row.text.split()
-    total_tests = int(summary[2])
-    tests_failed = int(summary[5])
-    tests_passed = int(total_tests) - int(tests_failed)
+    # we only want the first row of the summary table
+    summary = table_rows_in(link)[0].text.split()
+    total_tests, tests_failed = int(summary[2]), int(summary[5])
+    tests_passed = total_tests - tests_failed
     return(tests_passed, tests_failed, total_tests)
 
 
 def aggregate_report(parent_link):
     '''
-    outputs the finals counts for the regression report to the console
+    print the final counts for the regression report to the console
     ex.
        Tests passed: 64, Tests failed: 6, Total Tests: 70
     '''
     for link, contents in get_top_level_links(parent_link):
         url = parent_link + link.popitem()[1]
-        analysis_links = parse_index(url)
-        totals = []
-        for link in analysis_links:
-            url = parent_link + contents[0] + '/' + link
-            totals.append(parse_summary(url))
-
-        # totals is a list of tuples (pass, fail, skip) for each test scraped:
-        # [(1-P, 11-F, 111-S), (2-P, 22-F, 222-S), (3-P, 33-F, 333-S)]
-        #
-        # zip(*totals) results in:
-        # [(1-P, 2-P, 3-P), (11-F, 22-F, 33-F), (111-S, 222-S, 333-S)]
-        #
-        # representing a collection of each type (passed, failed, total)
-        # which sum can iterate => [6-P, 66-F, 666-S]
-
+        summary_url = lambda link: parent_link + contents[0] + '/' + link
+        totals = (parse_summary(summary_url(i)) for i in parse_index(url))
         passed, failed, total = (sum(items) for items in zip(*totals))
         print("\n Tests passed: {}, Tests failed: {}, Total Tests: {}").format(
             passed, failed, total)
 
 if __name__ == "__main__":
-    # since we don't sanitize or verify trailing slashes...
-    if sys.argv[1][-1] != '/':
-        aggregate_report(sys.argv[1] + '/')
-    else:
+    # super jank
+    if sys.argv[1].endswith('/'):
         aggregate_report(sys.argv[1])
+    else:
+        aggregate_report(sys.argv[1] + '/')        
