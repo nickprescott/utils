@@ -8,21 +8,17 @@ usage:
 
         Tests passed: 13, Tests failed: 0, Total Tests: 13
 """
-
 from bs4 import BeautifulSoup
-import requests
+import contextlib
+import urllib2
 import sys
 
 
 table_rows_in = lambda url: _get_parsed_page(url).find('table').findAll('tr')
 
 def _get_parsed_page(link):
-    '''
-    provide regression report link, returns the BS object
-    '''
-    page = requests.get(link).text
-    return BeautifulSoup(page)
-
+    with contextlib.closing(urllib2.urlopen(link)) as page:
+        return BeautifulSoup(page.read())
 
 def get_top_level_links(parent_link):
     '''
@@ -32,20 +28,17 @@ def get_top_level_links(parent_link):
     soup = _get_parsed_page(parent_link)
     return ((link.attrs, link.contents) for link in soup.findAll('a'))
 
-
 def parse_index(html_page):
     '''
     returns a generator of links from the analysis page
     '''
     table_cells_in = lambda x: x.findAll('td')
     get_href_from = lambda x: x.find('a')['href']
-    
-    return (get_href_from(table_cells_in(tr)[2]) \
-            for tr in table_rows_in(html_page) \
-            if len(table_cells_in(tr)) == 5 \
-            and "analysis" \
-            in table_cells_in(tr)[2].text)
 
+    for row in table_rows_in(html_page):
+        if len(table_cells_in(row)) == 5 \
+           and "analysis" in table_cells_in(row)[2].text:
+            yield get_href_from(table_cells_in(row)[2])
 
 def parse_summary(link):
     '''
@@ -57,7 +50,6 @@ def parse_summary(link):
     total_tests, tests_failed = int(summary[2]), int(summary[5])
     tests_passed = total_tests - tests_failed
     return(tests_passed, tests_failed, total_tests)
-
 
 def aggregate_report(parent_link):
     '''
@@ -78,4 +70,4 @@ if __name__ == "__main__":
     if sys.argv[1].endswith('/'):
         aggregate_report(sys.argv[1])
     else:
-        aggregate_report(sys.argv[1] + '/')        
+        aggregate_report(sys.argv[1] + '/')
